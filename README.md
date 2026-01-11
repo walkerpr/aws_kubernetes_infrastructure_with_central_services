@@ -45,6 +45,7 @@ The following packages must be installed prior to the playbooks being ran:
 - Python-Pip (for Python3.12)
 - Ansible (installed via PIP)
 - AWS CLI
+- Red Hat Enterprise Linux Subscription
 
 AWS Credentials must also be setup. It is recommended to use AWS CONFIGURE SSO to do so.
 
