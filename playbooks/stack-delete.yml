@@ -1,0 +1,8 @@
+---
+
+- hosts: localhost
+  roles:
+    - stack-delete
+  vars_files:
+    - ../common/vars/main.yml
+    - ../common/vars/secrets.yml

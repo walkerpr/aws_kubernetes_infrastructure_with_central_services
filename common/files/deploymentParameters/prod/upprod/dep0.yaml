@@ -1,0 +1,36 @@
+# Environment information
+pSampleEnv: prod
+pEnvironment: upprod
+pDeploymentNumber: 0
+# Boolean to identify what EC2s to deploy
+pDeployEdgeResources: "false"
+pDeployKUBERNETESResources: "false"
+pDeployARMKUBERNETESResources: "false"
+pDeployUPResources: "true"
+pDeployDOWNResources: "true"
+pDeployFleetResources: "false"
+# Kubernetes information (Neither or RKE)
+pEdgeClusterContainerPlatform: Neither
+# Boolean for Automated Start/Stop settings
+pEc2DailyStart: "true"
+pEc2DailyStop: "true"
+# Instance Information
+pControlPlaneInstanceTypeOCP: t3.large
+pWorkerInstanceTypeOCP: t3.large
+pControlPlaneInstanceTypeRKE: t3.large
+pWorkerInstanceTypeRKE: t3.large
+pControlPlaneInstanceTypeKUBERNETES: t3.xlarge
+pWorkerInstanceTypeKUBERNETES: t3.large
+pControlPlaneInstanceTypeARMKUBERNETES: t4g.large
+pWorkerInstanceTypeARMKUBERNETES: t4g.large
+pEdgeInstanceType: t3.large
+pBootstrapInstanceType: t3.large
+pUPInstanceType: t3.xlarge
+pDOWNInstanceType: t3.xlarge
+pFleetInstanceType: t3.large
+pFleetInstanceAmount: 3
+# DNS Information
+pDomain: sample
+# Network Information
+pSubnetCIDR0: 10.4.34.0/27
+pSubnetCIDR1: 10.4.34.32/27

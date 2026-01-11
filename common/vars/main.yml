@@ -1,0 +1,16 @@
+---
+id_000000000000:
+  sample_environment: test
+  deployment_environment: dev
+
+id_000000000001:
+  sample_environment: prod
+  deployment_environment: dev
+
+id_000000000002:
+  sample_environment: prod
+  deployment_environment: upprod
+
+id_000000000003:
+  sample_environment: prod
+  deployment_environment: uptest

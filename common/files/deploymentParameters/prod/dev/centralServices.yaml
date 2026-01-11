@@ -1,0 +1,49 @@
+# Environment information
+pSampleEnv: prod
+pEnvironment: dev
+# Boolean for Automated Start/Stop settings
+pEc2DailyStop: "true"
+pEc2DailyStart: "true"
+# Network Information
+pVpcCidr: 10.4.182.0/24
+pVpcCidr1: 10.4.45.0/24
+pVpcCidr2: 10.4.199.0/24
+pVpcCidr3: 10.30.6.0/24
+pVpcCidr4: 10.4.94.0/24
+pSubnetCidrA: 10.4.182.192/28
+pSubnetCidrB: 10.4.182.208/28
+pSubnetCidrC: 10.4.182.224/27
+pSubnetCidrD: 10.4.45.128/26
+pSubnetCidrE: 10.4.45.192/26
+pSubnetCidrF: 10.4.94.0/25
+pSubnetCidrG: 10.4.94.128/25
+pVpcId: vpc-<PLACEHOLDER>
+pTGWId: tgw-<PLACEHOLDER>
+pTGWSubnetId: subnet-<PLACEHOLDER>
+# Instance Information
+pInstanceType: t3.large
+pArmInstanceType: t4g.large
+pAWSAMIId: ami-08f42c51760f3e3af
+pRHELIAMIId: ami-0eb3b4f93101f630e
+pALMAAMIId: ami-02db5f9385acct3e8ac0
+pRHEL9IAMIId: ami-030d1cf861950bc2b
+pRHEL10IAMIId: ami-0bff57246fb028e71
+pUbuntuAMIId: ami-0ce1953b55b67cc14
+# DNS Information
+pDomain: sample
+# WorkSpaces Information
+pDeployWorkspaces: "true"
+pDirectoryId: d-<PLACEHOLDER>
+# Boolean to deploy EC2s
+pDeployEC2s: "true"
+# Information for VPC Peering with Upprod and Uptest Acccounts
+pUpProdCIDR0: 10.4.34.0/27
+pUpProdCIDR1: 10.4.34.32/27
+pUpTestCIDR0: 10.4.33.0/27
+pUpTestCIDR1: 10.4.33.32/27
+pPeeringIdUpProd: pcx-<PLACEHOLDER>
+pPeeringIdUpTest: pcx-<PLACEHOLDER>
+pUptestResolverIP0: 10.4.33.237
+pUptestResolverIP1: 10.152.11.13
+pUpprodResolverIP0: 10.4.34.237
+pUpprodResolverIP1: 10.152.10.9

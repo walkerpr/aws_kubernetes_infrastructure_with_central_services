@@ -1,0 +1,37 @@
+name: "Install and Enabled SSM Agent"
+description: "Install and Enabled SSM Agent"
+schemaVersion: 1.0
+phases:
+  - name: build
+    steps:
+      - name: OperatingSystemRelease
+        action: ExecuteBash
+        inputs:
+          commands:
+            # Outputs the Operating System for use throughout this document
+            - |
+              FILE=/etc/os-release
+              if [ -e $FILE ]; then
+                . $FILE
+                echo "$ID${VERSION_ID:+.${VERSION_ID}}"
+              else
+                echo "The file $FILE does not exist. Exiting."
+                exit 0
+              fi
+      - name: InstallSSM
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              RELEASE='{{build.OperatingSystemRelease.outputs.stdout}}'
+              case "${RELEASE}" in
+                centos*|rhel*)
+                  dnf install -y https://s3.us-gov-west-1.amazonaws.com/amazon-ssm-us-gov-west-1/latest/linux_amd64/amazon-ssm-agent.rpm
+                  systemctl enable amazon-ssm-agent --now
+                  systemctl status amazon-ssm-agent
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 0
+                  ;;
+              esac

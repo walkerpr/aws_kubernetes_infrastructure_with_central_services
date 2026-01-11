@@ -1,0 +1,9 @@
+---
+# vars file for base
+insights_compliance_ids:
+  - name: rhel7
+    id: d663b1a2-5a25-4794-80a4-b7926ce2defb
+  - name: rhel8
+    id: abe8fd66-fb5e-4acct34-a277-d1a7ef3db9a4
+  - name: rhel9
+    id: d663b1a2-5a25-4794-80a4-b7926ce2defb

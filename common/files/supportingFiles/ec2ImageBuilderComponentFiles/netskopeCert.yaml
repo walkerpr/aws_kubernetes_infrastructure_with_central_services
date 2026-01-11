@@ -1,0 +1,137 @@
+name: "Add Netskope Certificate to Trust Store"
+description: "Adds the Netskope certificate (required for all outbound communication), to truststore."
+schemaVersion: 1.0
+phases:
+  - name: build
+    steps:
+      - name: OperatingSystemRelease
+        action: ExecuteBash
+        inputs:
+          commands:
+            # Outputs the Operating System for use throughout this document
+            - |
+              FILE=/etc/os-release
+              if [ -e $FILE ]; then
+                . $FILE
+                echo "$ID${VERSION_ID:+.${VERSION_ID}}"
+              else
+                echo "The file $FILE does not exist. Exiting."
+                exit 1
+              fi
+      - name: GetCertificateFilePath
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              RELEASE='{{build.OperatingSystemRelease.outputs.stdout}}'
+              case "${RELEASE}" in
+                amzn*|centos*|rhel*|alma*)
+                  echo '/etc/pki/ca-trust/source/anchors/netskope.crt'
+                  ;;
+                ubuntu*)
+                  echo '/usr/local/share/ca-certificates/netskope.crt'
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 1
+                  ;;
+              esac
+      - name: CreateCertificateFile
+        action: CreateFile
+        inputs:
+          - path: "{{build.GetCertificateFilePath.outputs.stdout}}"
+            content: |
+              -----BEGIN CERTIFICATE-----
+              MIID/DCCAuSgAwIBAgICATgwDQYJKoZIhvcNAQELBQAwgZcxCzAJBgNVBAYTAlVT
+              MQswCQYDVQQIEwJDQTEUMBIGA1UEBxMLU2FudGEgQ2xhcmExFjAUBgNVBAoTDU5l
+              dHNrb3BlIEluYy4xEjAQBgNVBAsTCWNlcnRhZG1pbjESMBAGA1UEAxMJY2VydGFk
+              bWluMSUwIwYJKoZIhvcNAQkBFhZjZXJ0YWRtaW5AbmV0c2tvcGUuY29tMB4XDTE5
+              MTAyNTE4MTg1MFoXDTI5MTAyMjE4MTg1MFowgZcxCzAJBgNVBAYTAlVTMQswCQYD
+              VQQIEwJDQTEUMBIGA1UEBxMLU2FudGEgQ2xhcmExFjAUBgNVBAoTDU5ldHNrb3Bl
+              IEluYy4xEjAQBgNVBAsTCWNlcnRhZG1pbjESMBAGA1UEAxMJY2VydGFkbWluMSUw
+              IwYJKoZIhvcNAQkBFhZjZXJ0YWRtaW5AbmV0c2tvcGUuY29tMIIBIjANBgkqhkiG
+              9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuYamgJifcWI3j9zv6OHI0hCQnZHj8uuzZ6sw
+              nfbediwij9X7MTbQZmswXZt4EgJ58uPN8Opt3+eh+XGP1wbQemUIm9ZkL5WzMVxP
+              3xW/twL5hBBQOXvn6JX5HS8N53fiDDU8LCuc0xj0Kpdl3TiDDpebtJe6UPiwebyz
+              jtOwD3ddpiIlArvRzUU1Hi9RIey2clf//3NChyvteQ3TIhciwxbViOxPHxXTRI7w
+              znFlwuDxvx7X5wwDkI2vzV2jpn23uIROjpCYC7kLvGInEKrgVAzoKauaC+tJmiJY
+              91m2KGN6xGc94JMRawH6Q+wv/7cBsOGVOUVIpxcM1XS5UqngTwIDAQABo1AwTjAM
+              BgNVHRMEBTADAQH/MB0GA1UdDgQWBBSvIpNrMIV6Lcujo5SCGWw3AGl7VDAfBgNV
+              HSMEGDAWgBSvIpNrMIV6Lcujo5SCGWw3AGl7VDANBgkqhkiG9w0BAQsFAAOCAQEA
+              pKVWEFpG7/d0kAhre2eYLwYEf6tVVP2to9Cp8RgBFSG/ScmEqt2/TXXcpMjRI5eG
+              nOUbPJIQJi2TQEiI/BG/g6CJZWJiE3fR3NTCksbLbcbdl7exkKT/tItebf4qXlca
+              ASSd0hBTygE7QqOPSENnSrj7r9P0gv0Z2Bf5jKdirhr/clz/ev88O3KYuxqwwl31
+              vyLDT0hd/Dzka2/ZKMXL5uFAtsYqpU4hz5NeGgNntKAkwcfFgsTh/NZaYjyRhvUp
+              jRBt2Mt8OwtxJ+vPM4mvpwFMzvfzhdJfKX/p6IWOJjDFHHFRqdFaHvW3zzarzFt6
+              tLom62fi7946+fyBmEPu5w==
+              -----END CERTIFICATE-----
+      - name: GetCertificateFilePath0
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              RELEASE='{{build.OperatingSystemRelease.outputs.stdout}}'
+              case "${RELEASE}" in
+                amzn*|centos*|rhel*|alma*)
+                  echo '/etc/pki/ca-trust/source/anchors/netskope0.crt'
+                  ;;
+                ubuntu*)
+                  echo '/usr/local/share/ca-certificates/netskope0.crt'
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 1
+                  ;;
+              esac
+      - name: CreateCertificateFile0
+        action: CreateFile
+        inputs:
+          - path: "{{build.GetCertificateFilePath0.outputs.stdout}}"
+            content: |
+              -----BEGIN CERTIFICATE-----
+              MIIE9zCCA9+gAwIBAgIJAJJDI3J7eaSmMA0GCSqGSIb3DQEBBQUAMIGtMQswCQYD
+              VQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTESMBAGA1UEBxMJTG9zIEFsdG9z
+              MRUwEwYDVQQKEwxuZXRTa29wZSBJbmMxGDAWBgNVBAsTD0NlcnQgTWFuYWdlbWVu
+              dDEdMBsGA1UEAxMUY2FhZG1pbi5uZXRza29wZS5jb20xJTAjBgkqhkiG9w0BCQEW
+              FmNlcnRhZG1pbkBuZXRza29wZS5jb20wHhcNMTMwNjE5MjMyMTE3WhcNNDMwNjEy
+              MjMyMTE3WjCBrTELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExEjAQ
+              BgNVBAcTCUxvcyBBbHRvczEVMBMGA1UEChMMbmV0U2tvcGUgSW5jMRgwFgYDVQQL
+              Ew9DZXJ0IE1hbmFnZW1lbnQxHTAbBgNVBAMTFGNhYWRtaW4ubmV0c2tvcGUuY29t
+              MSUwIwYJKoZIhvcNAQkBFhZjZXJ0YWRtaW5AbmV0c2tvcGUuY29tMIIBIjANBgkq
+              hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxzKWllimAaCY6P8qG1OjPrs4/5b/ofQX
+              e7Gd/vCoAtWEClQ6TxC1YkUl7sYF9bu1CUD3NHWsQfReezCKGyBPafcu+twg+Dcd
+              yc/uaCxz6V9BpsPT6lgzYkDDpVE63I9zlMGnaS+hIAdplaPjcXHUXe/mYNXtKAte
+              duaUDg76R1588BLvOVWn6txFoDxKqDsfkzAoI3uoPO7AH/0EFAokAYzt9f1G1hLE
+              v30U9feQ0OIgGSpdiqo/pLDaRUpAI2ZmOfm5DNu/6vEF0G6p7rNY1rIUynTVmzKY
+              P+5w61fsBN19OUYCvCgF6NOpBZgl93xCocnZ1Zd3DjR9M2QFFdXrXwIDAQABo4IB
+              FjCCARIwHQYDVR0OBBYEFNQ+GYzg+VGt/zUO4p1Ja1DuzKF+MIHiBgNVHSMEgdow
+              gdeAFNQ+GYzg+VGt/zUO4p1Ja1DuzKF+oYGzpIGwMIGtMQswCQYDVQQGEwJVUzET
+              MBEGA1UECBMKQ2FsaWZvcm5pYTESMBAGA1UEBxMJTG9zIEFsdG9zMRUwEwYDVQQK
+              EwxuZXRTa29wZSBJbmMxGDAWBgNVBAsTD0NlcnQgTWFuYWdlbWVudDEdMBsGA1UE
+              AxMUY2FhZG1pbi5uZXRza29wZS5jb20xJTAjBgkqhkiG9w0BCQEWFmNlcnRhZG1p
+              bkBuZXRza29wZS5jb22CCQCSQyNye3mkpjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3
+              DQEBBQUAA4IBAQCKwspwM/SpIrbFEKSh4bfhR6p9YZ8nL6V5Q68lQooIFBTndPi4
+              0lazoss4NrUchuCvDe9LHgfDQMf5LABiyy6RixMhWYa85hoUHkULDwunSYHJEKhH
+              OzuxQl31m7/jQtL7RtAvTzdnykI5lrGdOjvCgxFDa6lBS5fmDUs+5DpDbHWamExC
+              ksBmuDhV8+yh+7MZriSDOWNzDNlxUm8qbK2TYvaQhM7n+YM4BG+2DVWtVPtyiVTFd
+              ss27AwG2hyhc+Czg5PU2V1Z+JsQyEOl4G8xLHH6hdQPWC8gBlsPc/nemEBxhnqNi
+              fAkUAvHXsEwI5PdVcvP2KI4hSz60FQNMQEr6
+              -----END CERTIFICATE-----
+      - name: UpdateCertificate
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              RELEASE='{{build.OperatingSystemRelease.outputs.stdout}}'
+              case "${RELEASE}" in
+                amzn*|centos*|rhel*|alma*)
+                  update-ca-trust extract
+                  ;;
+                ubuntu*)
+                  update-ca-certificates
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 1
+                  ;;
+              esac

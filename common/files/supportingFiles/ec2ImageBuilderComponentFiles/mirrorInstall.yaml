@@ -1,0 +1,59 @@
+name: "Install Podman"
+description: "Install and Enabled Podman"
+schemaVersion: 1.0
+phases:
+  - name: build
+    steps:
+      - name: OperatingSystemRelease
+        action: ExecuteBash
+        inputs:
+          commands:
+            # Outputs the Operating System for use throughout this document
+            - |
+              FILE=/etc/os-release
+              if [ -e $FILE ]; then
+                . $FILE
+                echo "$ID${VERSION_ID:+.${VERSION_ID}}"
+              else
+                echo "The file $FILE does not exist. Exiting."
+                exit 0
+              fi
+      - name: InstallPodman
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              RELEASE='{{build.OperatingSystemRelease.outputs.stdout}}'
+              case "${RELEASE}" in
+                centos*|rhel*)
+                  dnf install -y podman
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 1
+                  ;;
+              esac
+      - name: ExtractMirror
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              dnf install -y wget
+              wget --no-check-certificate  https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz
+              mkdir -p /opt/redhat-mirror
+              tar -C /opt/redhat-mirror -xvf mirror-registry-amd64.tar.gz
+      - name: UpdateSysConfig
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              if [[ $(grep -l -R -E "user.max_user_namespace|conf.all.forwarding" /etc/ ) ]]
+              then
+                for FILE in $(grep -l -R -E "user.max_user_namespace|conf.all.forwarding" /etc/ )
+                do
+                  sed -i 's/user.max_user_namespaces = 0/user.max_user_namespaces = 1000/g' "$FILE"
+                  sed -i 's/conf.all.forwarding = 0/conf.all.forwarding = 1/g' "$FILE"
+                done
+              else
+                exit 0
+              fi

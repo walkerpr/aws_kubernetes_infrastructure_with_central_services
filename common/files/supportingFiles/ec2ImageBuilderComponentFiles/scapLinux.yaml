@@ -1,0 +1,239 @@
+name: "SCAP Compliance Checker (SCC) 5.10 with all current STIG Q1 2025 Benchmarks"
+description: "Installs and runs SCAP Compliance Checker (SCC) 5.10 for Red Hat Enterprise Linux (RHEL) 7/8, Ubuntu 18.04/20.04/22.04 with all current STIG Q1 2025 benchmarks. SCC supports the AMD64 architecture. Other architectures are not currently supported or contain issues within the EC2 environment. For more information, see https://docs.aws.amazon.com/imagebuilder/latest/userguide/toe-stig.html."
+schemaVersion: 1.0
+constants:
+  - SCCFileName:
+      type: string
+      value: "scc-5.10_Linux_bundle.tgz"
+  - BenchmarksFileName:
+      type: string
+      value: "benchmarks_2025_Q1.zip"
+  - ComponentVersion:
+      type: string
+      value: "2025.01.1"
+  - SCCVersion:
+      type: string
+      value: "5.10"
+  - BenchmarkVersion:
+      type: string
+      value: "2025_Q1"
+  - SCCExe:
+      type: string
+      value: "/opt/scc/cscc"
+  - SCCResultsDir:
+      type: string
+      value: "/opt/scc/SCCResults"
+  - SupportedVersions:
+      type: string
+      value: "rhel7x86_64,rhel8x86_64,ubuntu18amd64,ubuntu20amd64,ubuntu22amd64,ubuntu24amd64,ubuntu24.04amd64,ubuntu24x86_64,ubuntu24.04x86_64,amzn2023x86_64"
+  - OSFile:
+      type: string
+      value: "/etc/os-release"
+phases:
+  - name: build
+    steps:
+      - name: RebootStep
+        if:
+          and:
+            - binaryExists: "apt-get"
+        action: Reboot
+        maxAttempts: 2
+      - name: DetermineArchitecture
+        action: ExecuteBash
+        onFailure: Abort
+        if:
+          fileExists: "{{ OSFile }}"
+          else: Abort
+        inputs:
+          commands:
+            - |
+              ARCH=$(uname -m)
+              if [[ ${ARCH} != "x86_64" ]]; then
+                echo "Architecture is currently not supported, or has bugs preventing installation. Failing."
+                exit 1
+              elif [[ $(grep -i "ubuntu" '{{ OSFile }}') ]]; then
+                [[ ${ARCH} == "x86_64" ]] && ARCH="amd64"
+                echo $ARCH
+              else
+                echo $ARCH
+              fi
+      - name: OperatingSystemRelease
+        action: ExecuteBash
+        onFailure: Abort
+        inputs:
+          commands:
+            - |
+              ARCH='{{ build.DetermineArchitecture.outputs.stdout }}'
+              SUPPORTED_VERSIONS=('{{ SupportedVersions }}')
+              . '{{ OSFile }}'
+              OS_VERSION=$(echo "$ID${VERSION_ID}" | cut -d"." -f 1)
+              IFS=","
+              if [[ ${SUPPORTED_VERSIONS[*]} =~ "${OS_VERSION}${ARCH}" ]]; then
+                echo $OS_VERSION
+              else
+                echo "The SCAP Compliance Checker {{ SCCVersion }} doesn't support ${OS_VERSION}. Exiting."
+                exit 1
+              fi
+      - name: StagingPath
+        action: ExecuteBash
+        onFailure: Abort
+        inputs:
+          commands:
+            - mktemp -d
+      - name: SetUpSourceFile
+        action: ExecuteBash
+        onFailure: Abort
+        inputs:
+          commands:
+            - |
+              RELEASE='{{ build.OperatingSystemRelease.outputs.stdout }}'
+              STAGING_PATH="{{build.StagingPath.outputs.stdout}}"
+              sourceFile=$STAGING_PATH/releaseinfo.cfg
+              case "${RELEASE}" in
+                rhel*)
+                  sccInstaller="scc-{{ SCCVersion }}.${RELEASE}.$(uname -m).rpm"
+                  echo "INSTALLER_PATH=${STAGING_PATH}/${sccInstaller}" >> "${sourceFile}"
+                  echo 'PACKAGE_MANAGER=yum' >> "${sourceFile}"
+                  echo "SEARCH=\"rpm -q\"" >> "${sourceFile}"
+                  echo "INSTALL_CMD=\"rpm -ivh\"" >> "${sourceFile}"
+                  echo | openssl s_client -showcerts -servername "github.com" -connect github.com:443 2>/dev/null | tee  tee /etc/pki/ca-trust/source/anchors/github.crt
+                  ;;
+                amzn*)
+                  sccInstaller="scc-{{ SCCVersion }}.rhel8.$(uname -m).rpm"
+                  echo "INSTALLER_PATH=${STAGING_PATH}/${sccInstaller}" >> "${sourceFile}"
+                  echo 'PACKAGE_MANAGER=yum' >> "${sourceFile}"
+                  echo "SEARCH=\"rpm -q\"" >> "${sourceFile}"
+                  echo "INSTALL_CMD=\"rpm -ivh\"" >> "${sourceFile}"
+                  dnf -y install libxcrypt-compat
+                  dnf -y install libnsl
+                  ;;
+                ubuntu*)
+                  [[ $(uname -m) == "x86_64" ]] && ARCH="amd64" || ARCH="arm64"
+                  sccInstaller="scc-{{ SCCVersion }}.${RELEASE}.${ARCH}.deb"
+                  echo "INSTALLER_PATH=${STAGING_PATH}/${sccInstaller}" >> "${sourceFile}"
+                  echo 'PACKAGE_MANAGER=apt-get' >> "${sourceFile}"
+                  echo "SEARCH=\"dpkg -l\"" >> "${sourceFile}"
+                  echo "INSTALL_CMD=\"dpkg -i -E\"" >> "${sourceFile}"
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 1
+                  ;;
+              esac
+      - name: VerifyPrerequisite
+        action: ExecuteBash
+        onFailure: Abort
+        inputs:
+          commands:
+            - |
+              sourceFile='{{build.StagingPath.outputs.stdout}}'/releaseinfo.cfg
+              source "${sourceFile}"
+              if ! eval $SEARCH tar; then
+                $PACKAGE_MANAGER install -y tar
+                echo INSTALLED_TAR=true >> "${sourceFile}"
+              else
+                echo INSTALLED_TAR=false >> "${sourceFile}"
+              fi
+      - name: DownloadSCC
+        action: S3Download
+        inputs:
+          - source: s3://ec2imagebuilder-managed-resources-us-gov-west-1-prod/components/scap-compliance-checker-linux/{{ ComponentVersion }}/{{ SCCFileName }}
+            destination: "{{ build.StagingPath.outputs.stdout }}/{{ SCCFileName }}"
+            overwrite: true
+          - source: s3://ec2imagebuilder-managed-resources-us-gov-west-1-prod/components/scap-compliance-checker-linux/{{ ComponentVersion }}/{{ BenchmarksFileName }}
+            destination: "{{ build.StagingPath.outputs.stdout }}/{{ BenchmarksFileName }}"
+            overwrite: true
+      - name: DecompressSCC
+        action: ExecuteBash
+        inputs:
+          commands:
+            - tar -xvf '{{ build.StagingPath.outputs.stdout }}/{{ SCCFileName }}' -C '{{ build.StagingPath.outputs.stdout }}/' || ( echo "File failed to extract properly. Unable to continue." ; exit 1; )
+      - name: InstallSCC
+        action: ExecuteBash
+        maxAttempts: 20
+        inputs:
+          commands:
+            - |
+              sourceFile='{{build.StagingPath.outputs.stdout}}'/releaseinfo.cfg
+              source "${sourceFile}"
+              echo "Attempting to install SCAP Compliance Checker {{ SCCVersion }}"
+              eval ${INSTALL_CMD} ${INSTALLER_PATH} || {
+                  echo 'Failed to install SCAP Compliance Checker. Exiting.'
+                  exit 1
+              }
+      - name: InstallSCCBenchmarks
+        action: ExecuteBash
+        maxAttempts: 20
+        inputs:
+          commands:
+            - |
+              sccBenchmark='{{ build.StagingPath.outputs.stdout }}/{{ BenchmarksFileName }}'
+              {{ SCCExe }} -ua || {
+                  echo "Failed to remove the preinstalled benchmarks and load the new ones. Exiting."
+                  exit 1
+              }
+              {{ SCCExe }} -is --force ${sccBenchmark} || {
+                  echo "Failed to install the {{ BenchmarkVersion }} benchmarks. Exiting."
+                  exit 1
+              }
+      - name: UpdateSCCBenchmarks
+        action: ExecuteBash
+        maxAttempts: 20
+        onFailure: Continue
+        inputs:
+          commands:
+            - |
+              {{ SCCExe }} --checkForContentUpdates --installUpdates || {
+                echo "Failed to update SCC Benchmarks"
+                exit 1
+              }
+      - name: MakeSCCResultsDIR
+        action: CreateFolder
+        inputs:
+          - path: "{{ SCCResultsDir }}"
+            permissions: 755
+      - name: InvokeSCC
+        action: ExecuteBash
+        onFailure: Continue
+        maxAttempts: 20
+        inputs:
+          commands:
+            - |
+              {{ SCCExe }} -q -u {{ SCCResultsDir }} || {
+                echo 'Failed to run SCAP Compliance Checker. Exiting.'
+                exit 1
+              }
+      - name: GetSCCResults
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              RELEASE='{{ build.OperatingSystemRelease.outputs.stdout }}'
+              xmlPath={{ SCCResultsDir }}/Sessions/$(date "+%Y-%m-%d*")/Results/SCAP/XML
+              resultFile=$(find ${xmlPath} -type f -name "*_XCCDF-Results_*")
+              if [ ${resultFile} ]; then
+                score=$(grep -P 'sample-adjusted">' ${resultFile} | awk -F"[<>]" '{print $3}')
+                if [ "${score}" ]; then
+                  echo "SCC gave {{ build.OperatingSystemRelease.outputs.stdout }} a compliance score of ${score}%."
+                else
+                  echo "SCC didn't generate a score. Failing"
+                  exit 1
+                fi
+              else
+                echo "Did not find any SCAP results files. Failing."
+                exit 1
+              fi
+      - name: TarCleanup
+        action: ExecuteBash
+        inputs:
+          commands:
+            - |
+              sourceFile='{{build.StagingPath.outputs.stdout}}'/releaseinfo.cfg
+              source "${sourceFile}"
+              $INSTALLED_TAR && $PACKAGE_MANAGER remove -y tar
+              exit 0
+      - name: Cleanup
+        action: DeleteFolder
+        inputs:
+          - path: "{{ build.StagingPath.outputs.stdout }}"
+            force: true

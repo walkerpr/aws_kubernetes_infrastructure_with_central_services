@@ -1,0 +1,9 @@
+---
+
+- hosts: localhost
+  tasks:
+    - include_role:
+        name: update-termination-protection
+        tasks_from: main.yml
+  vars_files:
+    - ../common/vars/main.yml

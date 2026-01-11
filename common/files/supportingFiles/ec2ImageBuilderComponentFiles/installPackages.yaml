@@ -1,0 +1,66 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+name: install-packages-from-repository
+description: Installs a package from the Linux repository.
+schemaVersion: 1.0
+parameters:
+  - packageNames:
+      description: A comma separated list of packages to install.
+      type: string
+phases:
+  - name: build
+    steps:
+      - name: OperatingSystemRelease
+        action: ExecuteBash
+        inputs:
+          commands:
+            # Outputs the Operating System for use throughout this document
+            - |
+              FILE=/etc/os-release
+              if [ -e $FILE ]; then
+                . $FILE
+                echo "$ID${VERSION_ID:+.${VERSION_ID}}"
+              else
+                echo "The file $FILE does not exist. Exiting."
+                exit 1
+              fi
+      - name: InstallPackages
+        action: ExecuteBash
+        loop:
+          forEach:
+            list: '{{ packageNames }}'
+            delimiter: ','
+        inputs:
+          commands:
+            - |
+              RELEASE='{{build.OperatingSystemRelease.outputs.stdout}}'
+              case "${RELEASE}" in
+                amzn*|centos*|rhel*|alma*)
+                  sudo dnf install -y {{ loop.value }}
+                  ;;
+                ubuntu*)
+                  sudo apt-get update
+                  sudo apt-get install -y {{ loop.value }}
+                  ;;
+                suse*)
+                  sudo zypper refresh
+                  sudo zypper install -y {{ loop.value }}
+                  ;;
+                *)
+                  echo "Operating System '${RELEASE}' is not supported. Exiting."
+                  exit 1
+                  ;;
+              esac

@@ -1,0 +1,44 @@
+---
+- name: Creates s3 bucket if it does not exist
+  amazon.aws.s3_bucket:
+    name: sample-{{ sample_environment }}-{{ deployment_environment }}-cloud-formation-templates
+    state: present
+
+- name: Sync templates
+  s3_sync:
+    bucket: sample-{{ sample_environment }}-{{ deployment_environment }}-cloud-formation-templates
+    file_root: ../common/files/cloudFormationTemplates/
+
+- name: Create or update cloudformation stack
+  cloudformation:
+    stack_name: "sample-deployment-{{ deployment_number }}"
+    capabilities: ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
+    state: "present"
+    template_url: "https://sample-{{ sample_environment }}-{{ deployment_environment }}-cloud-formation-templates.s3.us-gov-west-1.amazonaws.com/sampleDeployment/sampleDeployment.yaml"
+    template_parameters: "{{ lookup('file', '../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/dep{{ deployment_number }}.yaml') | from_yaml  }}"
+  when: deployment_number is defined
+
+- name: Create or update cloudformation stack
+  cloudformation:
+    stack_name: "sample-central-services"
+    capabilities: ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
+    state: "present"
+    template_url: "https://sample-{{ sample_environment }}-{{ deployment_environment }}-cloud-formation-templates.s3.us-gov-west-1.amazonaws.com/sampleCentralServices/sampleCentralServices.yaml"
+    template_parameters: "{{ lookup('file', '../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/centralServices.yaml') | from_yaml  }}"
+  when: deployment_number is not defined
+
+- name: Enable termination protection on critical resources
+  ec2_instance:
+    filters:
+      tag:sampleDeploymentNumber: "{{ deployment_number }}"
+      instance-state-name: running
+    termination_protection: true
+  when: deployment_number is defined
+
+- name: Enable termination protection on critical central service resources
+  ec2_instance:
+    filters:
+      tag:centralServicesResource: "true"
+      instance-state-name: running
+    termination_protection: true
+  when: deployment_number is not defined

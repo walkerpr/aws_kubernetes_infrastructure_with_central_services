@@ -1,0 +1,40 @@
+# Environment information
+pSampleEnv: prod
+pEnvironment: uptest
+# Boolean for Automated Start/Stop settings
+pEc2DailyStop: "true"
+pEc2DailyStart: "false"
+# Network Information
+pVpcCidr: 10.4.33.0/24
+pVpcCidr1: 10.152.11.0/24
+pSubnetCidrA: 10.4.33.192/28
+pSubnetCidrB: 10.4.33.208/28
+pSubnetCidrC: 10.4.33.224/27
+pSubnetCidrD: 10.152.11.0/27
+pSubnetCidrE: 10.152.11.32/27
+pSubnetCidrF: 10.152.11.64/27
+pSubnetCidrG: 10.152.11.96/27
+pVpcId: vpc-<PLACEHOLDER>
+pTGWId: tgw-<PLACEHOLDER>
+pTGWSubnetId: subnet-<PLACEHOLDER>
+pPeeringIdUpTest: pcx-<PLACEHOLDER>
+pDevCidr0: 10.4.182.0/24
+pDevCidr1: 10.4.45.0/24
+pDevCidr2: 10.4.199.0/24
+pDevCidr3: 10.30.6.0/24
+pDevCidr4: 10.4.94.0/24
+# Instance Information
+pInstanceType: t3.large
+pArmInstanceType: t4g.large
+pAWSAMIId: ami-08f42c51760f3e3af
+pRHELIAMIId: ami-0eb3b4f93101f630e
+pALMAAMIId: ami-02db5f9385acct3e8ac0
+pRHEL9IAMIId: ami-030d1cf861950bc2b
+pRHEL10IAMIId: ami-0bff57246fb028e71
+pUbuntuAMIId: ami-0ce1953b55b67cc14
+# DNS Information
+pDomain: sample
+# WorkSpaces Information
+pDeployWorkspaces: "false"
+# Boolean to deploy EC2s
+pDeployEC2s: "true"
