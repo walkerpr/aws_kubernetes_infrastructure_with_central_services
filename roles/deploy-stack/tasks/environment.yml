@@ -65,7 +65,7 @@
 
 - name: Sync Component templates
   community.aws.s3_sync:
-    bucket: sample-{{ sample_environment }}-{{ deployment_environment }}-cloud-formation-templates
+    bucket: {{ deployment_environment }}-cloud-formation-templates
     key_prefix: supportingFiles
     file_root: ../common/files/supportingFiles/
 

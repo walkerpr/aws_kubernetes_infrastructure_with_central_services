@@ -446,7 +446,7 @@ Resources:
       Comment: Alias record for the API server
       HostedZoneId: !Sub "{{resolve:ssm:/sample/route53/${pEnvironment}-dev/id}}"
       RecordSets:
-        - Name: !Sub "vst.taf.downstream.elb.${pEnvironment}.${pDomain}.dev"
+        - Name: !Sub "viewer.taf.downstream.elb.${pEnvironment}.${pDomain}.dev"
           Type: CNAME
           AliasTarget:
             HostedZoneId: !GetAtt DOWNVSTELBTAF.CanonicalHostedZoneID

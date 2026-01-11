@@ -484,9 +484,9 @@ Resources:
       RecordSets:
         - Name: !If
           - testingUpstream
-          - "vst.0.downstream.uptest.dev"
-          - "vst.0.downstream.upprod.dev"
+          - "viewer.0.downstream.uptest.dev"
+          - "viewer.0.downstream.upprod.dev"
           Type: CNAME
           TTL: 900
           ResourceRecords:
-            - !Select [1, !Split [ ":", !Select [0, !GetAtt EC2VPCEndpointOceVst.DnsEntries ] ] ]
+            - !Select [1, !Split [ ":", !Select [0, !GetAtt EC2VPCEndpointOceviewer.DnsEntries ] ] ]

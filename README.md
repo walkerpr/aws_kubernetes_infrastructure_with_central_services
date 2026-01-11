@@ -1,12 +1,17 @@
 CloudFormation ec2-hosted kubernetes Infrastructure
 ==============================
 
+Architecture
+==============================
+![alt text](docs/diagrams/Sample-Architecture-Full.drawio.svg)
+
 Deployment
 ==============================
 
 This document provides guidance deploying the EC2-hosted, kubernetes Infrastructure.
 
 - [CloudFormation ec2-hosted kubernetes Infrastructure](#cloudformation-ec2-hosted-kubernetes-infrastructure)
+- [Architecture](#architecture)
 - [Deployment](#deployment)
   - [IMPORTANT](#important)
   - [Prerequisites](#prerequisites)
