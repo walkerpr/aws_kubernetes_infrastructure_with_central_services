@@ -73,7 +73,6 @@ Variables
 - 5
 - 6
 - 7
-- 8
 
 *Subject to grow as more infrastructure is provisioned*
 ### `deploymentEnvironment` options:
