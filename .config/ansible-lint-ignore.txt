@@ -2,3 +2,4 @@
 roles/deploy-stack/tasks/environment.yml ignore-errors
 roles/deploy-stack/tasks/main.yml syntax-check[unknown-module]
 roles/deploy-stack/tasks/secure.yml ignore-errors
+roles/deploy-stack/tasks/main.yml yaml[line-length]
