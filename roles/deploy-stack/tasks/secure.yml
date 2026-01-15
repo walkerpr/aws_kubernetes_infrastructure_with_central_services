@@ -4,28 +4,34 @@
   register: aws_regions
 
 - name: Ensure AWS EC2 encryption by default is enabled.
-  shell: aws ec2 enable-ebs-encryption-by-default --region {{ item.region_name }}
+  ansible.builtin.command: aws ec2 enable-ebs-encryption-by-default --region {{ item.region_name }}
   loop: "{{ aws_regions.regions }}"
   ignore_errors: true
-  
+
 - name: Get default security group IDs
-  command: aws ec2 describe-security-groups --filter Name=group-name,Values=default --query SecurityGroups[*].GroupId --output text
+  ansible.builtin.command: aws ec2 describe-security-groups --filter Name=group-name,Values=default --query SecurityGroups[*].GroupId --output text
   register: security_group_ids
 
 - name: Get ingress rules for default security groups
-  shell: aws ec2 describe-security-group-rules --filter Name=group-id,Values={{ security_group_ids.stdout }} --query SecurityGroupRules[*] --output text | grep False | awk -F" " '{print $3,$8}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    aws ec2 describe-security-group-rules --filter Name=group-id,Values={{ security_group_ids.stdout }} --query SecurityGroupRules[*] \
+    --output text | grep False | awk -F" " '{print $3,$8}'
   register: ingress_sg_rules
 
 - name: Get egress rules for default security groups
-  shell: aws ec2 describe-security-group-rules --filter Name=group-id,Values={{ security_group_ids.stdout }} --query SecurityGroupRules[*] --output text | grep True | awk -F" " '{print $3, $8}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    aws ec2 describe-security-group-rules --filter Name=group-id,Values={{ security_group_ids.stdout }} --query SecurityGroupRules[*] \
+    --output text | grep True | awk -F" " '{print $3, $8}'
   register: egress_sg_rules
 
 - name: Delete ingress rules for default security groups
-  shell: |
+  ansible.builtin.shell: |
     aws ec2 revoke-security-group-ingress --group-id {{ item.split(" ")[0] }} --security-group-rule-ids {{ item.split(" ")[1] }}
   loop: "{{ ingress_sg_rules.stdout_lines }}"
 
 - name: Delete egress rules for default security groups
-  shell: |
+  ansible.builtin.shell: |
     aws ec2 revoke-security-group-egress --group-id {{ item.split(" ")[0] }} --security-group-rule-ids {{ item.split(" ")[1] }}
   loop: "{{ egress_sg_rules.stdout_lines }}"

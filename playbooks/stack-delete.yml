@@ -1,6 +1,6 @@
 ---
-
-- hosts: localhost
+- name: Delete stack
+  hosts: localhost
   roles:
     - stack-delete
   vars_files:

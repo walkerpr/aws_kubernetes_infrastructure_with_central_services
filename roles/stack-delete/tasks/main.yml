@@ -1,54 +1,59 @@
 ---
-
-
-- pause:
+- name: Pause
+  ansible.builtin.pause:
     prompt: "WARNING: You are about to DELETE a CloudFormation Stack. To continue, type 'accept' and press ENTER. Otherwise, the playbook will cancel"
   register: result
 
-- block:
-  - pause:
-      prompt: "Input other than 'accept' was entered. The playbook will now end."
-      seconds: 10
-
-  - meta: end_play
-
+- name: Wait for input
   when: result.user_input != "accept"
+  block:
+    - name: Pause
+      ansible.builtin.pause:
+        prompt: "Input other than 'accept' was entered. The playbook will now end."
+        seconds: 10
+    - name: End play
+      ansible.builtin.meta: end_play
 
-- block:
-  - pause:
-      prompt: "INFO: This playbook will fail if 'ansible-playbook playbooks/update-termination-protection -e enabled=false' -e deployment_number=<deployment_number> has not been ran for deployment {{ deployment_number }}, as the EC2s cannot be deleted with Termination Protection enabled. This play will continue in 10 seconds."
-      seconds: 10
-
-  - name: Delete cloudformation stack.
-    cloudformation:
-      stack_name: "sample-deployment-{{ deployment_number }}"
-      state: "absent"
-
-  - name: End play.
-    meta: end_play
-
+- name: Show warning
   when: result.user_input == "accept" and deployment_number is defined
+  block:
+    - name: Pause
+      ansible.builtin.pause:
+        prompt: "INFO: This playbook will fail if 'ansible-playbook playbooks/update-termination-protection
+          -e enabled=false' -e deployment_number=<deployment_number>
+          has not been ran for deployment {{ deployment_number }}, as the EC2s cannot be deleted with
+          Termination Protection enabled. This play will continue in 10
+          seconds."
+        seconds: 10
+    - name: Delete cloudformation stack.
+      amazon.aws.cloudformation:
+        stack_name: "sample-deployment-{{ deployment_number }}"
+        state: "absent"
+    - name: End play.
+      ansible.builtin.meta: end_play
 
-- block:
-  - pause:
-      prompt: "INFO: This playbook will fail if 'ansible-playbook playbooks/update-termination-protection -e enabled=false' has not been ran, as the EC2s cannot be deleted with Termination Protection enabled. This play will continue in 10 seconds."
-      seconds: 10
-
-  - name: Delete cloudformation stack.
-    cloudformation:
-      stack_name: "sample-central-services"
-      state: "absent"
-
-  - name: End play.
-    meta: end_play
-
+- name: Show warning
   when: result.user_input == "accept" and central_services_stack is defined and central_services_stack == "true"
+  block:
+    - name: Pause
+      ansible.builtin.pause:
+        prompt: "INFO: This playbook will fail if 'ansible-playbook playbooks/update-termination-protection
+          -e enabled=false' has not been ran, as the EC2s cannot
+          be deleted with Termination Protection enabled. This play will continue in 10 seconds."
+        seconds: 10
+    - name: Delete cloudformation stack.
+      amazon.aws.cloudformation:
+        stack_name: "sample-central-services"
+        state: "absent"
+    - name: End play.
+      ansible.builtin.meta: end_play
 
-- block:
-  - pause:
-      prompt: "Please include ONE of these variables with the playbook: deployment_number=<deployment_number> OR central_services_stack='true'."
-      seconds: 10
-
-  - meta: end_play
-
+- name: Show error
   when: deployment_number is not defined or central_services_stack is not defined
+  block:
+    - name: Pause
+      ansible.builtin.pause:
+        prompt: "Please include ONE of these variables with the playbook: deployment_number=<deployment_number> OR central_services_stack='true'."
+        seconds: 10
+    - name: End play
+      ansible.builtin.meta: end_play

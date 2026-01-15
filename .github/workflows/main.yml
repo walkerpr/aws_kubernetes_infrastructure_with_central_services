@@ -1,0 +1,24 @@
+# This is a basic workflow to help you get started with Actions
+
+# .github/workflows/ansible-lint.yml
+name: ansible-lint
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main", "stable", "release/v*"]
+jobs:
+  build:
+    name: Ansible Lint # Naming the build is important to use it as a status check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@main # or vX.X.X version
+        # optional (see below):
+        with:
+          args: ""
+          setup_python: "true"
+          python_version: "3.14"
+          working_directory: ""
+          requirements_file: ".config/requirements.yml"

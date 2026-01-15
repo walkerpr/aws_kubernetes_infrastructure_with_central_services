@@ -1,8 +1,9 @@
 ---
-
-- hosts: localhost
+- name: Update termination protection
+  hosts: localhost
   tasks:
-    - include_role:
+    - name: Update termination protection
+      ansible.builtin.include_role:
         name: update-termination-protection
         tasks_from: main.yml
   vars_files:

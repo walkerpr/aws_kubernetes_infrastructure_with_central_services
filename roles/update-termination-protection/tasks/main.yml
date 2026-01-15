@@ -1,10 +1,13 @@
 ---
-- block:
-  - pause:
-      prompt: "Please include the 'enabled' variable with either the 'true' or 'false' value."
-      seconds: 3
-  - meta: end_play
+- name: Send error
   when: enabled not in ["true","false"]
+  block:
+    - name: Pause
+      ansible.builtin.pause:
+        prompt: "Please include the 'enabled' variable with either the 'true' or 'false' value."
+        seconds: 3
+    - name: End play
+      ansible.builtin.meta: end_play
 
 - name: Get the current caller identity information
   amazon.aws.aws_caller_info:
@@ -12,22 +15,22 @@
   register: caller_info
 
 - name: Set sample_environment variable
-  set_fact:
+  ansible.builtin.set_fact:
     sample_environment: "{{ lookup('ansible.builtin.vars', 'id_' + caller_info.account).sample_environment }}"
 
 - name: Set deployment_environment variable
-  set_fact:
+  ansible.builtin.set_fact:
     deployment_environment: "{{ lookup('ansible.builtin.vars', 'id_' + caller_info.account).deployment_environment }}"
 
 - name: Disable termination protection on critical deployment resources
-  ec2_instance:
+  amazon.aws.ec2_instance:
     filters:
       tag:aaDeploymentNumber: "{{ deployment_number }}"
     termination_protection: "{{ enabled }}"
   when: deployment_number is defined
 
 - name: Disable termination protection on critical central service resources
-  ec2_instance:
+  amazon.aws.ec2_instance:
     filters:
       tag:centralServicesResource: "{{ enabled }}"
     termination_protection: true

@@ -1,5 +1,4 @@
 ---
-
 - name: Get the current caller identity information
   amazon.aws.aws_caller_info:
     region: us-gov-west-1
@@ -11,9 +10,9 @@
   register: caller_info
 
 - name: Set deployment_environment variable
-  set_fact:
+  ansible.builtin.set_fact:
     deployment_environment: "{{ lookup('ansible.builtin.vars', 'id_' + caller_info.account).deployment_environment }}"
 
 - name: Set sample_environment variable
-  set_fact:
+  ansible.builtin.set_fact:
     sample_environment: "{{ lookup('ansible.builtin.vars', 'id_' + caller_info.account).sample_environment }}"

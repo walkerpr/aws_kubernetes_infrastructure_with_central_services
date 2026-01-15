@@ -1,22 +1,30 @@
 ---
-
 - name: Get file contents
-  shell: grep pEc2DailyStart "../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/dep{{ deployment_number }}.yaml" | awk -F":" '{print $2}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep pEc2DailyStart \
+    "../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/dep{{ deployment_number }}.yaml" \
+    | awk -F":" '{print $2}'
   register: daily_start
 
 - name: Get file contents
-  shell: grep pEc2DailyStop "../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/dep{{ deployment_number }}.yaml" | awk -F":" '{print $2}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep pEc2DailyStop \
+    "../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/dep{{ deployment_number }}.yaml" \
+    | awk -F":" '{print $2}'
   register: daily_stop
 
 - name: Gather information instances
-  command: aws ec2 describe-instances --filters "Name=tag:aaDeploymentNumber,Values={{ deployment_number }}" "Name=instance-state-name,Values=pending,running,shutting-down,stopping,stopped" --query "Reservations[*].Instances[*].[InstanceId]" --output text
+  ansible.builtin.command: aws ec2 describe-instances --filters "Name=tag:aaDeploymentNumber,Values={{ deployment_number }}" \
+    "Name=instance-state-name,Values=pending,running,shutting-down,stopping,stopped" --query "Reservations[*].Instances[*].[InstanceId]" --output text
   register: dev_instances
 
 - name: Update tags
   amazon.aws.ec2_tag:
-    resource: '{{ item }}'
+    resource: "{{ item }}"
     state: present
     tags:
-      ec2DailyStart: "{{ daily_start.stdout | replace('\"','') | trim }}"
-      ec2DailyStop:  "{{ daily_stop.stdout | replace('\"','') | trim }}"
-  loop:  "{{ dev_instances.stdout_lines }}"
+      ec2DailyStart: "{{ daily_start.stdout | replace('\"', '') | trim }}"
+      ec2DailyStop: "{{ daily_stop.stdout | replace('\"', '') | trim }}"
+  loop: "{{ dev_instances.stdout_lines }}"

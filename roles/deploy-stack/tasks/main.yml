@@ -5,12 +5,12 @@
     state: present
 
 - name: Sync templates
-  s3_sync:
+  community.aws.s3_sync:
     bucket: "{{ deployment_environment }}-cloud-formation-templates"
     file_root: ../common/files/cloudFormationTemplates/
 
 - name: Create or update cloudformation stack
-  cloudformation:
+  amazon.aws.cloudformation:
     stack_name: "sample-deployment-{{ deployment_number }}"
     capabilities: ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
     state: "present"
@@ -19,16 +19,16 @@
   when: deployment_number is defined
 
 - name: Create or update cloudformation stack
-  cloudformation:
+  amazon.aws.cloudformation:
     stack_name: "sample-central-services"
     capabilities: ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
     state: "present"
     template_url: "https://{{ deployment_environment }}-cloud-formation-templates.s3.us-gov-west-1.amazonaws.com/sampleCentralServices/sampleCentralServices.yaml"
-    template_parameters: "{{ lookup('file', '../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/centralServices.yaml') | from_yaml  }}"
+    template_parameters: "{{ lookup('file', '../common/files/deploymentParameters/{{ sample_environment }}/{{ deployment_environment }}/centralServices.yaml') | from_yaml }}"
   when: deployment_number is not defined
 
 - name: Enable termination protection on critical resources
-  ec2_instance:
+  amazon.aws.ec2_instance:
     filters:
       tag:sampleDeploymentNumber: "{{ deployment_number }}"
       instance-state-name: running
@@ -36,7 +36,7 @@
   when: deployment_number is defined
 
 - name: Enable termination protection on critical central service resources
-  ec2_instance:
+  amazon.aws.ec2_instance:
     filters:
       tag:centralServicesResource: "true"
       instance-state-name: running

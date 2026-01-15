@@ -1,8 +1,9 @@
 ---
-
-- hosts: localhost
+- name: Set tags
+  hosts: localhost
   tasks:
-    - include_role:
+    - name: Deploy stack
+      ansible.builtin.include_role:
         name: deploy-stack
         tasks_from: tags.yml
   vars_files:

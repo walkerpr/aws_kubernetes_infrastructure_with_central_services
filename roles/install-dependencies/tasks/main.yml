@@ -1,12 +1,8 @@
 ---
 - name: Install boto3
-  pip:
+  ansible.builtin.pip:
     name: boto3
 
 - name: Install botocore
-  pip:
+  ansible.builtin.pip:
     name: botocore
-
-- name: Install aws ansible plugin
-  command: >
-    ansible-galaxy collection install amazon.aws

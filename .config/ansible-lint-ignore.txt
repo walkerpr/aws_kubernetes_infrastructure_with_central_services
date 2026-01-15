@@ -1,0 +1,4 @@
+# This file contains ignores rule violations for ansible-lint
+roles/deploy-stack/tasks/environment.yml ignore-errors
+roles/deploy-stack/tasks/main.yml syntax-check[unknown-module]
+roles/deploy-stack/tasks/secure.yml ignore-errors

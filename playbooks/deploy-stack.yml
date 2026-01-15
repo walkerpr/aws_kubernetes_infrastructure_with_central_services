@@ -1,20 +1,24 @@
 ---
-
-- hosts: localhost
+- name: Install dependencies
+  hosts: localhost
   roles:
     - install-dependencies
 
-- hosts: localhost
+- name: Deploy stack
+  hosts: localhost
   tasks:
-    - include_role:
+    - name: Deploy stack
+      ansible.builtin.include_role:
         name: deploy-stack
         tasks_from: variables.yml
   vars_files:
     - ../common/vars/main.yml
 
-- hosts: localhost
+- name: Deploy stack
+  hosts: localhost
   tasks:
-    - include_role:
+    - name: Deploy-stack
+      ansible.builtin.include_role:
         name: deploy-stack
         tasks_from: secure.yml
       when: deployment_number is not defined
@@ -22,9 +26,11 @@
     - ../common/vars/main.yml
     - ../common/vars/secrets.yml
 
-- hosts: localhost
+- name: Deploy stack
+  hosts: localhost
   tasks:
-    - include_role:
+    - name: Deploy-stack
+      ansible.builtin.include_role:
         name: deploy-stack
         tasks_from: environment.yml
       when: deployment_number is not defined
@@ -32,15 +38,18 @@
     - ../common/vars/main.yml
     - ../common/vars/secrets.yml
 
-- hosts: localhost
+- name: Deploy stack
+  hosts: localhost
   roles:
     - deploy-stack
   vars_files:
     - ../common/vars/main.yml
 
-- hosts: localhost
+- name: Deploy stack
+  hosts: localhost
   tasks:
-    - include_role:
+    - name: Deploy stack
+      ansible.builtin.include_role:
         name: deploy-stack
         tasks_from: tags.yml
       when: deployment_number is defined
